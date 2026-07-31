@@ -37,6 +37,12 @@ public static class NativeMouse {
     public static extern bool SetForegroundWindow(IntPtr hWnd);
 
     [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int command);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
     public static extern bool SetCursorPos(int x, int y);
 
     [DllImport("user32.dll")]
@@ -88,15 +94,16 @@ function Get-WeChatWindow {
 }
 
 function Start-WeChat {
+    $window = $null
     if (Get-Process -Name $script:ProcessName -ErrorAction SilentlyContinue) {
-        return Get-WeChatWindow
+        $window = Get-WeChatWindow
     }
-
-    if ($Exe) {
+    elseif ($Exe) {
         if (-not (Test-Path -LiteralPath $Exe -PathType Leaf)) {
             throw "微信程序不存在：$Exe"
         }
         Start-Process -FilePath $Exe | Out-Null
+        $window = Get-WeChatWindow -TimeoutSeconds 15
     }
     else {
         $apps = @(Get-StartApps | Where-Object { $_.Name -eq '微信' })
@@ -104,9 +111,18 @@ function Start-WeChat {
             throw '无法唯一定位微信。请使用 -Exe 指定 Weixin.exe。'
         }
         Start-Process -FilePath 'explorer.exe' -ArgumentList "shell:AppsFolder\$($apps[0].AppID)" | Out-Null
+        $window = Get-WeChatWindow -TimeoutSeconds 15
     }
 
-    return Get-WeChatWindow -TimeoutSeconds 15
+    $process = Get-Process -Id $window.Current.ProcessId
+    if ($process.MainWindowHandle -eq 0) { throw '微信主窗口句柄无效。' }
+    [NativeMouse]::ShowWindow($process.MainWindowHandle, 9) | Out-Null
+    for ($attempt = 0; $attempt -lt 3; $attempt++) {
+        [NativeMouse]::SetForegroundWindow($process.MainWindowHandle) | Out-Null
+        Start-Sleep -Milliseconds 150
+        if ([NativeMouse]::GetForegroundWindow() -eq $process.MainWindowHandle) { break }
+    }
+    return $window
 }
 
 function Find-ByAutomationId {
@@ -628,19 +644,19 @@ switch ($Command) {
         "已打开微信：$($window.Current.Name)"
     }
     'select' {
-        $window = Get-WeChatWindow
+        $window = Start-WeChat
         $selected = Select-WeChatGroup -Window $window -Name $Group
         "已选中：$selected"
     }
     'read' {
-        $window = Get-WeChatWindow
+        $window = Start-WeChat
         if (-not [string]::IsNullOrWhiteSpace($Group)) {
             $null = Select-WeChatGroup -Window $window -Name $Group
         }
         Read-WeChatMessages -Window $window
     }
     'send' {
-        $window = Get-WeChatWindow
+        $window = Start-WeChat
         $null = Select-WeChatGroup -Window $window -Name $Group
         Send-WeChatMessage -Window $window -Message $Text
         '发送完成'
