@@ -1,0 +1,5 @@
+.venv/
+data/sender-cache.json
+data/media/
+__pycache__/
+*.pyc

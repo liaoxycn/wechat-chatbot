@@ -1,0 +1,14 @@
+.venv/
+data/sender-cache.json
+data/media/
+project/.venv/
+project/data/sender-cache.json
+project/data/media/
+skills/*/.venv/
+skills/*/data/sender-cache.json
+skills/*/data/media/
+__pycache__/
+*.pyc
+outputs/
+work/
+System.Collections.Hashtable
