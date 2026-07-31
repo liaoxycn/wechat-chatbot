@@ -7,8 +7,7 @@
 ```powershell
 npx skills add liaoxycn/wechat-chatbot --skill wechat-chatbot
 ```
-
-安装后新开一个 Codex 会话。
+安装到项目目录
 
 ## 使用示例
 
