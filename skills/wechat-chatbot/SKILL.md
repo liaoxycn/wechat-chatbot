@@ -34,5 +34,6 @@ description: Operate the logged-in Windows WeChat desktop client with local UI A
 - `-Sender` 是日常昵称读取模式；新头像无法识别时会返回 `未知`。
 
 读取 `references/cli.md` 获取完整命令与故障处理。
+需要以 Python 编程或持续监听群消息时，读取 `references/sdk.md` 并使用 `scripts/wechat_sdk.py`。
 
 微信相关操作仅执行scripts/wechat-cli.ps1相关命令，每个都会操作结果，报错则停下

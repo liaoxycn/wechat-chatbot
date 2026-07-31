@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Position = 0, Mandatory = $true)]
     [ValidateSet('open', 'select', 'read', 'send')]
@@ -16,14 +16,21 @@ param(
     [switch]$Json,
     [switch]$Ocr,
     [switch]$Sender,
-    [string]$SenderCache = (Join-Path $PSScriptRoot '..\data\sender-cache.json'),
+    [string]$SenderCache = '',
     [switch]$NoSenderCache,
-    [string]$MediaDirectory = (Join-Path $PSScriptRoot '..\data\media'),
+    [string]$MediaDirectory = '',
     [string]$Python = ''
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($SenderCache)) {
+    $SenderCache = Join-Path $PSScriptRoot '..\data\sender-cache.json'
+}
+if ([string]::IsNullOrWhiteSpace($MediaDirectory)) {
+    $MediaDirectory = Join-Path $PSScriptRoot '..\data\media'
+}
 
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
